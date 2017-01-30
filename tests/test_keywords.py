@@ -68,8 +68,8 @@ def test_keywords():
     test_run_number = 'Run00001234'
     test_n_files = '1400Files'
 
-    test_run_range_1 = '000102-000399'
-    test_run_range_2 = '102-399'
+    test_run_range_1 = '000010-000399'
+    test_run_range_2 = '10-399'
     test_run_ranges = [23, 89, 399, 102, 10]
 
     assert test_run_number == run_number
@@ -83,13 +83,25 @@ def test_keywords():
     get_val = run_number.get_value(test_n_files)
     assert n_files.generate(get_val) == str(get_val)
 
-    assert test_run_range_1 != n_files
-    assert test_run_range_1 != n_files
-    assert test_run_range_1 == n_files
-    assert test_run_range_2 == n_files
-    assert test_n_files == n_files
-    assert n_files.get_value(test_n_files) == 1400
-    get_val = run_number.get_value(test_n_files)
-    assert n_files.generate(get_val) == str(get_val)
-
-
+    assert test_n_files != run_range
+    assert test_run_number != run_range
+    assert test_run_range_1 == run_range
+    assert test_run_range_2 == run_range
+    get_val_1 = run_range.get_value(test_run_range_1)
+    get_val_2 = run_range.get_value(test_run_range_2)
+    assert get_val_1[0] == 10
+    assert get_val_1[0] == get_val_2[0]
+    assert get_val_1[1] == 399
+    assert get_val_1[1] == get_val_2[1]
+    gen_1 = run_range.generate(min_range=get_val_1[0],
+                               max_range=get_val_1[1],
+                               min_length=6)
+    gen_2 = run_range.generate(min_range=get_val_1[0],
+                               max_range=get_val_1[1])
+    gen_1_2 = run_range.generate(run_ranges=test_run_ranges,
+                                 min_length=6)
+    gen_2_2 = run_range.generate(run_ranges=test_run_ranges)
+    assert gen_1 == test_run_range_1
+    assert gen_2 == test_run_range_2
+    assert gen_1_2 == test_run_range_1
+    assert gen_2_2 == test_run_range_2

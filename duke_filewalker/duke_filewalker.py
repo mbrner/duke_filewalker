@@ -164,9 +164,9 @@ class DukeFilewalker:
         for extraction in extractions:
             pass
         filename_pattern = os.path.basename(pattern)
+        print(filename_pattern)
         directory_pattern = os.path.dirname(pattern)
-
-
+        print(directory_pattern)
 
 #######################################################################
 #  Default Filewalker
