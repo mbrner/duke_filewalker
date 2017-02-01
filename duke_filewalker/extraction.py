@@ -39,6 +39,7 @@ class FilePath(str):
     def __radd__(self, other):
         return self + other
 
+
 class Extraction:
     def __init__(self, file_dict=None, dir_dict=None):
         self.file_dict = file_dict
@@ -68,4 +69,3 @@ class Extraction:
         repr_str = 'Directory Extractions:\n{}\nFile Extractions:\n{}'.format(
             str(self.dir_dict), str(self.file_dict))
         return repr_str
-

@@ -14,13 +14,12 @@ def test_extraction_and_filepath():
     dir_dict_1 = {'data_dir': '/home/test_user/data'}
     dir_dict_2 = {'run_folder': 'Run0001'}
 
-
     extraction = Extraction(file_dict=file_dict,
                             dir_dict=dir_dict)
     extraction_1 = Extraction(file_dict=file_dict_1,
-                            dir_dict=dir_dict_1)
+                              dir_dict=dir_dict_1)
     extraction_2 = Extraction(file_dict=file_dict_2,
-                            dir_dict=dir_dict_2)
+                              dir_dict=dir_dict_2)
 
     filepath = FilePath(test_pattern)
 
