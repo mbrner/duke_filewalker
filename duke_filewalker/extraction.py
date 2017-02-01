@@ -35,7 +35,7 @@ class FilePath(str):
             return super(FilePath, self).__add__(other)
 
 class Extraction:
-    def __init__(self, file_dict, dir_dict):
+    def __init__(self, file_dict=None, dir_dict=None):
         self.file_dict = file_dict
         self.dir_dict = dir_dict
 
@@ -53,3 +53,9 @@ class Extraction:
         else:
             TypeError('Only "FilePath" and "Extraction" objects can be added')
 
+    def __repr__(self):
+        repr_str = 'Directory Extractions: {}\File Extractions: {}'.format(
+            str(self.dir_dict, self.file_dict))
+        return repr_str
+
+print(Extraction())
