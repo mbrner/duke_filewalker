@@ -1,5 +1,4 @@
 from duke_filewalker import FilePath, Extraction
-import fnmatch
 
 
 def test_extraction_and_filepath():
@@ -31,3 +30,6 @@ def test_extraction_and_filepath():
     assert extraction_1 + extraction_2 + filepath == full_path
     assert extraction_1 + filepath + extraction_2 == full_path
     assert filepath + extraction_2 + extraction_1 == full_path
+    assert filepath + 'X' == test_pattern + 'X'
+    assert extraction + test_pattern == full_path
+    assert test_pattern + extraction == full_path

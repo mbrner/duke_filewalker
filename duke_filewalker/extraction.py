@@ -18,21 +18,26 @@ class FilePath(str):
     def __add__(self, other):
         if isinstance(other, Extraction):
             new_file_pattern = self.file_pattern
-            for kw in self.file_keywords:
-                if kw in other.file_dict.keys():
-                    replacement = other.file_dict[kw]
-                    new_file_pattern = new_file_pattern.replace(
-                        '<{}>'.format(kw), replacement)
+            if other.file_dict is not None:
+                for kw in self.file_keywords:
+                    if kw in other.file_dict.keys():
+                        replacement = other.file_dict[kw]
+                        new_file_pattern = new_file_pattern.replace(
+                            '<{}>'.format(kw), replacement)
             new_dir_pattern = self.dir_pattern
-            for kw in self.dir_keywords:
-                if kw in other.dir_dict.keys():
-                    replacement = other.dir_dict[kw]
-                    new_dir_pattern = new_dir_pattern.replace(
-                        '<{}>'.format(kw), replacement)
+            if other.dir_dict is not None:
+                for kw in self.dir_keywords:
+                    if kw in other.dir_dict.keys():
+                        replacement = other.dir_dict[kw]
+                        new_dir_pattern = new_dir_pattern.replace(
+                            '<{}>'.format(kw), replacement)
             new_pattern = os.path.join(new_dir_pattern, new_file_pattern)
             return FilePath(new_pattern)
         else:
             return super(FilePath, self).__add__(other)
+
+    def __radd__(self, other):
+        return self + other
 
 class Extraction:
     def __init__(self, file_dict=None, dir_dict=None):
@@ -50,12 +55,17 @@ class Extraction:
                 if kw not in self.dir_dict.keys():
                     self.dir_dict[kw] = other.dir_dict[kw]
             return self
+        elif isinstance(other, str):
+            other = FilePath(other)
+            return other + self
         else:
             TypeError('Only "FilePath" and "Extraction" objects can be added')
 
+    def __radd__(self, other):
+        return self + other
+
     def __repr__(self):
-        repr_str = 'Directory Extractions: {}\File Extractions: {}'.format(
-            str(self.dir_dict, self.file_dict))
+        repr_str = 'Directory Extractions:\n{}\nFile Extractions:\n{}'.format(
+            str(self.dir_dict), str(self.file_dict))
         return repr_str
 
-print(Extraction())
