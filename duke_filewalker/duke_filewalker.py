@@ -6,7 +6,7 @@ import difflib
 import re
 import fnmatch
 from .keyword import Keyword
-
+from .extraction import Extraction
 
 logger = logging.getLogger('DukeFileWalker')
 
@@ -128,7 +128,8 @@ class DukeFilewalker:
                                             string, kw))
                             else:
                                 extraction_file[kw] = value
-            extractions.append([extraction_dir, extraction_file])
+            extractions.append(Extraction(dir_dict=extraction_dir,
+                                          file_dict=extraction_file))
         return extractions
 
     def _extract_single_(self, inpath, pattern_diff, keywords):
