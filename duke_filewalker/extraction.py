@@ -1,71 +1,124 @@
 from __future__ import division, absolute_import
 from __future__ import with_statement, print_function
-import os
 import re
+import difflib
+import fnmatch
 
 
-def get_keywords(string):
-    return re.findall(r'\<(.*?)\>', string)
+def get_keywords(pattern):
+    return re.findall(r'\<(.*?)\>', pattern)
 
 
-class FilePath(str):
+def generate_fnmatch_pattern(pattern):
+    keywords = get_keywords(pattern)
+    for kw in keywords:
+        pattern = pattern.replace('<{}>'.format(kw), '*')
+    return pattern, keywords
+
+
+def extract(string, pattern):
+    pattern, keywords = generate_fnmatch_pattern(pattern)
+    splitted_pattern = pattern.split('*')
+    extraction = {}
+    tmp = str(string)
+    for i, split_i in enumerate(splitted_pattern):
+        if split_i == '':
+            continue
+        replacement, got_it, tmp = tmp.partition(split_i)
+        if got_it == '':
+            break
+        if replacement != '':
+            if i == 0 and not pattern.startswith('*'):
+                continue
+            extraction[keywords[len(extraction)]] = replacement
+    if tmp != '':
+        extraction[keywords[len(extraction)]] = tmp
+    return extraction
+
+
+def extract_2(string, pattern, keywords):
+    extraction = {}
+    pointer = 0
+    match = ''
+    in_ = False
+    for c, _, s in difflib.ndiff(pattern, string):
+        if c == '-' and s == '*':
+            in_ = True
+        elif c == '-' and s != '*':
+            break
+        elif in_ and c == '+':
+            match += s
+        elif in_ and c == ' ':
+            in_ = False
+            if len(match) == 0:
+                raise AttributeError(
+                    'Unexpected str found: {} {}'.format(pattern,
+                                                         string))
+            extraction[keywords[pointer]] = match
+            match = ''
+            pointer += 1
+    if in_:
+        if len(match) == 0:
+            pass
+        else:
+            extraction[keywords[pointer]] = match
+    return extraction
+
+
+class Pattern(str):
     def __init__(self, pattern):
-        self.file_pattern = os.path.basename(pattern)
-        self.file_keywords = get_keywords(self.file_pattern)
-        self.dir_pattern = os.path.dirname(pattern)
-        self.dir_keywords = get_keywords(self.dir_pattern)
+        self.pattern = pattern
+        self.keywords = get_keywords(self.pattern)
+        self.fnmatch_pattern = pattern
+        for kw in self.keywords:
+            self.fnmatch_pattern = self.fnmatch_pattern.replace(
+                '<{}>'.format(kw), '*')
 
     def __add__(self, other):
         if isinstance(other, Extraction):
-            new_file_pattern = self.file_pattern
-            if other.file_dict is not None:
-                for kw in self.file_keywords:
-                    if kw in other.file_dict.keys():
-                        replacement = other.file_dict[kw]
-                        new_file_pattern = new_file_pattern.replace(
-                            '<{}>'.format(kw), replacement)
-            new_dir_pattern = self.dir_pattern
-            if other.dir_dict is not None:
-                for kw in self.dir_keywords:
-                    if kw in other.dir_dict.keys():
-                        replacement = other.dir_dict[kw]
-                        new_dir_pattern = new_dir_pattern.replace(
-                            '<{}>'.format(kw), replacement)
-            new_pattern = os.path.join(new_dir_pattern, new_file_pattern)
-            return FilePath(new_pattern)
+            new_pattern = self.pattern
+            for kw in self.keywords:
+                if kw in other.keys():
+                    replacement = other[kw]
+                    new_pattern = new_pattern.replace(
+                        '<{}>'.format(kw), replacement)
+            return Pattern(new_pattern)
         else:
-            return super(FilePath, self).__add__(other)
+            return super(Pattern, self).__add__(other)
 
     def __radd__(self, other):
         return self + other
 
+    def match(self, string):
+        return fnmatch.fnmatch(string, self.fnmatch_pattern)
 
-class Extraction:
-    def __init__(self, file_dict=None, dir_dict=None):
-        self.file_dict = file_dict
-        self.dir_dict = dir_dict
+    def extract(self, string, match=True):
+        if match:
+            if not self.match(string):
+                raise ValueError('{} is not matching {}'.format(string, self))
+        file_dict = extract(string, self.pattern)
+        return Extraction(file_dict)
 
+
+class Extraction(dict):
     def __add__(self, other):
-        if isinstance(other, FilePath):
+        if isinstance(other, Pattern):
             return other + self
-        elif isinstance(other, Extraction):
-            for kw in other.file_dict:
-                if kw not in self.file_dict.keys():
-                    self.file_dict[kw] = other.file_dict[kw]
-            for kw in other.dir_dict:
-                if kw not in self.dir_dict.keys():
-                    self.dir_dict[kw] = other.dir_dict[kw]
+        elif isinstance(other, dict):
+            for kw in other.keys():
+                if kw not in self.keys():
+                    try:
+                        new_entry = str(other[kw])
+                    except ValueError:
+                        pass
+                    else:
+                        self[kw] = new_entry
             return self
         elif isinstance(other, str):
-            other = FilePath(other)
+            other = Pattern(other)
             return other + self
         else:
-            TypeError('Only "FilePath" and "Extraction" objects can be added')
+            TypeError('Only "Pattern" and "Extraction" objects can be added')
 
     def __radd__(self, other):
         return self + other
-
-    def __repr__(self):
-        repr_str = 'Directory Extractions:\n{}\nFile Extractions:\n{}'.format(
-            str(self.dir_dict), str(self.file_dict))
-        return repr_str
