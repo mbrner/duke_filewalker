@@ -80,7 +80,6 @@ class Pattern(str):
             self.fnmatch_pattern = self.fnmatch_pattern.replace(
                 '<{}>'.format(kw), '*')
 
-
     def __add__(self, other):
         if isinstance(other, Extraction):
             new_pattern = self
@@ -140,7 +139,7 @@ class Pattern(str):
         if not any(matching):
             return None, None
         else:
-            idx = len(matching) - matching[::-1].index(True) -1
+            idx = len(matching) - matching[::-1].index(True) - 1
             reduced_fnmatch = reduced_patterns[idx]
             reduced_pattern = ''
             kw_counter = 0
@@ -218,7 +217,7 @@ class Keyword(str):
                 string = string[1:]
             if string.endswith('/'):
                 string = string[:-1]
-            has_required_depth = string.count('/') +1 == self.depth
+            has_required_depth = string.count('/') + 1 == self.depth
             matches = matches and has_required_depth
             return matches
 

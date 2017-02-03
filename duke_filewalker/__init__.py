@@ -25,7 +25,6 @@ def walk(top, pattern, onerror=None, followlinks=False):
             if extraction:
                 extractions.append(extraction)
 
-
     yield extractions
     for name in dirs:
         new_path = os.path.join(top, name)

@@ -40,8 +40,6 @@ def test_extraction_and_filepath():
     file_dict_2 = {'data_dir': '/home/user/data',
                    'run_folder': 'Run0001'}
 
-
-
     assert get_keywords(pattern_1) == ['run_folder',
                                        'filenum',
                                        'file_type']
@@ -99,7 +97,6 @@ def test_keyword():
     correct_value_2 = '/home/user/test/'
     correct_value_3 = 'home/user/test/'
     correct_value_4 = '/home/user/test'
-
 
     test_keyword = Keyword('data_dir::0')
     test_keyword_depth = Keyword('data_dir::3')
