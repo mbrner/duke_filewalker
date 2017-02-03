@@ -122,6 +122,7 @@ class Pattern(str):
                              'a depth limit can not bebe used for '
                              'match_subpath, because \'*\' '
                              'matches with everything!')
+        print(reduced_pattern)
         if reduced_pattern is None:
             return False
         reduced_pattern = Pattern(reduced_pattern)
