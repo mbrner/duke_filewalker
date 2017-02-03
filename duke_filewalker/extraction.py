@@ -98,15 +98,21 @@ class Pattern(str):
     def __fnmatch__(self, string):
         return fnmatch.fnmatch(string, self.fnmatch_pattern)
 
-    def match(self, string):
+    def match(self, string, extract=False):
         if self.__fnmatch__(string):
             extraction = self.extract(string)
             checked_extraction = [kw.match(extraction[kw])
                                   for kw in self.keywords
                                   if kw in extraction.keys()]
-            return all(checked_extraction)
+            if extract:
+                return all(checked_extraction), extraction
+            else:
+                return all(checked_extraction)
         else:
-            return False
+            if extract:
+                return False, {}
+            else:
+                return False
 
     def match_subpath(self, string):
         try:
@@ -152,11 +158,16 @@ class Pattern(str):
                 reduced_pattern += addition
         return reduced_pattern, reduced_fnmatch
 
-    def extract(self, string, match=True):
-        if match:
-            if not self.__fnmatch__(string):
-                return False
-        file_dict = extract(string, self.pattern)
+    def extract(self, string, reduce=False):
+        if reduce:
+            pattern, _ = self.__reduce_pattern__(string)
+        else:
+            pattern = self.pattern
+        file_dict = extract(string, pattern)
+        return Extraction(file_dict)
+
+    def match_extract(self, string):
+        file_dict = extract(string)
         return Extraction(file_dict)
 
 

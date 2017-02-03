@@ -16,6 +16,10 @@ def test_extract():
                    pattern='/<1>/<2>/<3>/<4>/'
                    ) == {'1': 'a', '2': 'c', '3': 'a', '4': 'b'}
 
+    assert extract(string='/a/c/',
+                   pattern='/<1>/<2>/<3>/<4>/'
+                   ) == {'1': 'a', '2': 'c'}
+
 
 def test_extraction_and_filepath():
     pattern_1 = '/home/user/data/test/<run_folder>/File<filenum>.<file_type>'

@@ -18,10 +18,10 @@ def walk(top, pattern, onerror=None, followlinks=False):
     dirs, extractions = [], []
     for name in names:
         if os.path.isdir(os.path.join(top, name)):
-            if pattern.match_dir(name):
+            if pattern.match_subpath(name):
                 dirs.append(name)
         else:
-            extraction = pattern.extract(name)
+            extraction = pattern.match(name)
             if extraction:
                 extractions.append(extraction)
 
