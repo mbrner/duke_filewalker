@@ -6,7 +6,8 @@ import fnmatch
 
 
 def get_keywords(pattern):
-    return re.findall(r'\<(.*?)\>', pattern)
+    string_list = re.findall(r'\<(.*?)\>', pattern)
+    return [Keyword(string) for string in string_list]
 
 
 def generate_fnmatch_pattern(pattern):
@@ -67,12 +68,15 @@ def extract_2(string, pattern, keywords):
 
 class Pattern(str):
     def __init__(self, pattern):
+        self.keywords = get_keywords(pattern)
         self.pattern = pattern
-        self.keywords = get_keywords(self.pattern)
-        self.fnmatch_pattern = pattern
+        for kw in self.keywords:
+            self.pattern = self.pattern.replace(repr(kw), str(kw))
+        self.fnmatch_pattern = self.pattern
         for kw in self.keywords:
             self.fnmatch_pattern = self.fnmatch_pattern.replace(
                 '<{}>'.format(kw), '*')
+
 
     def __add__(self, other):
         if isinstance(other, Extraction):
@@ -89,13 +93,38 @@ class Pattern(str):
     def __radd__(self, other):
         return self + other
 
-    def match(self, string):
+    def __fnmatch__(self, string):
         return fnmatch.fnmatch(string, self.fnmatch_pattern)
+
+    def match(self, string):
+        if self.__fnmatch__(string):
+            extraction = self.extract(string)
+            checked_extraction = [kw.match(extraction[kw])
+                                  for kw in self.keywords
+                                  if kw in extraction.keys()]
+            return all(checked_extraction)
+        else:
+            return False
+
+    def match_subpath(self, string):
+        if self.fnmatch_pattern.startswith('*'):
+            raise ValueError('A pattern starting with a keyword can not be '
+                             'used for match_subpath, because \'*\' matches '
+                             'with everything!')
+        splitted_pattern = self.fnmatch_pattern.split('*')
+        reduced_fnmatch_pattern = [splitted_pattern[0]]
+        match = Falsepk
+        for i, split_i, kw_i in enumerate(splitted_pattern[1:], self.keywords):
+            reduced_pattern += '*' + split_i
+
+        reduced_pattern = Pattern(reduced_pattern)
+        extraction = reduced_pattern.extract(string)
+        return reduced_pattern + extraction == string
 
     def extract(self, string, match=True):
         if match:
-            if not self.match(string):
-                raise ValueError('{} is not matching {}'.format(string, self))
+            if not self.__fnmatch__(string):
+                return False
         file_dict = extract(string, self.pattern)
         return Extraction(file_dict)
 
@@ -108,7 +137,7 @@ class Extraction(dict):
             for kw in other.keys():
                 if kw not in self.keys():
                     try:
-                        new_entry = str(other[kw])
+                        new_entry = other[kw]
                     except ValueError:
                         pass
                     else:
@@ -122,3 +151,53 @@ class Extraction(dict):
 
     def __radd__(self, other):
         return self + other
+
+
+class Keyword(str):
+    def __new__(cls, name, *args, **kwargs):
+        if '::' in name:
+            name = name.split('::')[0]
+        return super(Keyword, cls).__new__(cls, name)
+
+    def __init__(self, string):
+        self.input = string
+        self.depth = None
+        if '::' in string:
+            splitted = string.split('::')
+            for i, split_i in enumerate(splitted):
+                if i == 0:
+                    self.name = split_i
+                else:
+                    try:
+                        self.depth = int(split_i)
+                    except ValueError:
+                        raise ValueError('Keywords have to be '
+                                         '\'name::depth\'')
+        else:
+            self.name = string
+
+    def match(self, string):
+        matches = True
+        if self.depth is not None:
+            if string.startswith('/'):
+                string = string[1:]
+            if string.endswith('/'):
+                string = string[:-1]
+            has_required_depth = string.count('/') +1 == self.depth
+            matches = matches and has_required_depth
+        return matches
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.input
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __cmp__(self, other):
+        return str(self) == other
+
+    def __eq__(self, other):
+        return str(self) == other

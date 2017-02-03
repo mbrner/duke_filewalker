@@ -7,7 +7,7 @@ from .extraction import Pattern, Extraction
 __all__ = ['DukeFilewalker', 'Keyword', 'Pattern', 'Extraction']
 
 
-def walk(top, topdown=True, onerror=None, followlinks=False):
+def walk(top, pattern, onerror=None, followlinks=False):
     try:
         names = os.listdir(top)
     except os.error as err:
@@ -15,19 +15,20 @@ def walk(top, topdown=True, onerror=None, followlinks=False):
             onerror(err)
         return
 
-    dirs, nondirs = [], []
+    dirs, extractions = [], []
     for name in names:
         if os.path.isdir(os.path.join(top, name)):
-            dirs.append(name)
+            if pattern.match_dir(name):
+                dirs.append(name)
         else:
-            nondirs.append(name)
+            extraction = pattern.extract(name)
+            if extraction:
+                extractions.append(extraction)
 
-    if topdown:
-        yield top, dirs, nondirs
+
+    yield extractions
     for name in dirs:
         new_path = os.path.join(top, name)
         if followlinks or not os.path.islink(new_path):
-            for x in walk(new_path, topdown, onerror, followlinks):
+            for x in walk(new_path, pattern, onerror, followlinks):
                 yield x
-    if not topdown:
-        yield top, dirs, nondirs
