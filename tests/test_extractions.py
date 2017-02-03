@@ -19,14 +19,16 @@ def test_extract():
 
 def test_extraction_and_filepath():
     pattern_1 = '/home/user/data/test/<run_folder>/File<filenum>.<file_type>'
-    pattern_2 = '<data_dir>/test/<run_folder>/File<filenum>.<file_type>'
+    pattern_2 = '<data_dir::0>/test/<run_folder>/File<filenum>.<file_type>'
     pattern_3 = '/home/user/data/test/<run_folder>/File<filenum>.zip'
-    pattern_4 = '<data_dir>/test/<run_folder>/File<filenum>.zip'
-    pattern_5 = '<data_dir>/test/<run_folder::1>/File<filenum>.<file_type>'
+    pattern_4 = '<data_dir::0>/test/<run_folder>/File<filenum>.zip'
+    pattern_5 = '<data_dir::0>/test/<run_folder::1>/File<filenum>.<file_type>'
 
     full_path = '/home/user/data/test/Run0001/File003.zip'
     full_path_2 = '/home/user/data/test/Run0001/SubFolder/File003.zip'
     partially_path = '/home/user/data/test/Run0001/'
+    partially_path_2 = '/home/user/data/test/Run0001/SubFolder'
+
     wrong_path = '/home/user/data/test/Run0001/log.txt'
     full_dict = {'file_type': 'zip',
                  'filenum': '003',
@@ -38,9 +40,7 @@ def test_extraction_and_filepath():
     file_dict_2 = {'data_dir': '/home/user/data',
                    'run_folder': 'Run0001'}
 
-    extraction = Extraction(full_dict)
-    extraction_1 = Extraction(file_dict_1)
-    extraction_2 = Extraction(file_dict_2)
+
 
     assert get_keywords(pattern_1) == ['run_folder',
                                        'filenum',
@@ -49,18 +49,20 @@ def test_extraction_and_filepath():
                                        'run_folder',
                                        'filenum',
                                        'file_type']
-
     for test_pattern in [pattern_1,
                          pattern_2,
                          pattern_3,
                          pattern_4,
                          pattern_5]:
         filepath = Pattern(test_pattern)
+        extraction = Extraction(full_dict)
+        extraction_1 = Extraction(file_dict_1)
+        extraction_2 = Extraction(file_dict_2)
+
         file_dict = {}
         kws = get_keywords(test_pattern)
         for kw in kws:
             file_dict[kw] = full_dict[kw]
-
         assert filepath + extraction == full_path
         assert extraction + filepath == full_path
         assert extraction + extraction + filepath == full_path
@@ -77,16 +79,14 @@ def test_extraction_and_filepath():
         filepath_extraction_2 = filepath_extraction_1 + extraction_2
         assert filepath_extraction_2.match(full_path)
         assert (filepath + extraction_1 + extraction_2).match(full_path)
-        assert not filepath.match(partially_path)
         assert not filepath.match(wrong_path)
         assert filepath.extract(full_path) == file_dict
         assert filepath + filepath.extract(full_path) == full_path
-
-    assert Pattern(pattern_1).match(full_path_2)
-    assert Pattern(pattern_2).match(full_path_2)
-    assert Pattern(pattern_3).match(full_path_2)
-    assert Pattern(pattern_4).match(full_path_2)
-    assert not Pattern(pattern_5).match(full_path_2)
+        assert filepath.match(full_path)
+        assert not filepath.match(full_path_2)
+        assert not filepath.match(partially_path)
+        assert not filepath.match_subpath(partially_path_2)
+        assert not filepath.match_subpath(wrong_path)
 
 
 def test_keyword():
@@ -101,7 +101,7 @@ def test_keyword():
     correct_value_4 = '/home/user/test'
 
 
-    test_keyword = Keyword('data_dir')
+    test_keyword = Keyword('data_dir::0')
     test_keyword_depth = Keyword('data_dir::3')
 
     assert test_keyword == name

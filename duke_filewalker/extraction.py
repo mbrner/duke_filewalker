@@ -22,6 +22,9 @@ def extract(string, pattern):
     splitted_pattern = pattern.split('*')
     extraction = {}
     tmp = str(string)
+    for i, keyword_i in enumerate(keywords):
+        pass
+
     for i, split_i in enumerate(splitted_pattern):
         if split_i == '':
             continue
@@ -80,12 +83,12 @@ class Pattern(str):
 
     def __add__(self, other):
         if isinstance(other, Extraction):
-            new_pattern = self.pattern
+            new_pattern = self
             for kw in self.keywords:
                 if kw in other.keys():
                     replacement = other[kw]
                     new_pattern = new_pattern.replace(
-                        '<{}>'.format(kw), replacement)
+                        '<{}>'.format(repr(kw)), replacement)
             return Pattern(new_pattern)
         else:
             return super(Pattern, self).__add__(other)
@@ -107,19 +110,48 @@ class Pattern(str):
             return False
 
     def match_subpath(self, string):
-        if self.fnmatch_pattern.startswith('*'):
-            raise ValueError('A pattern starting with a keyword can not be '
-                             'used for match_subpath, because \'*\' matches '
-                             'with everything!')
-        splitted_pattern = self.fnmatch_pattern.split('*')
-        reduced_fnmatch_pattern = [splitted_pattern[0]]
-        match = Falsepk
-        for i, split_i, kw_i in enumerate(splitted_pattern[1:], self.keywords):
-            reduced_pattern += '*' + split_i
-
+        try:
+            reduced_pattern, reduced_fnmatch = self.__reduce_pattern__(string)
+        except ValueError:
+            raise ValueError('A pattern starting with a keyword without '
+                             'a depth limit can not bebe used for '
+                             'match_subpath, because \'*\' '
+                             'matches with everything!')
+        if reduced_pattern is None:
+            return False
         reduced_pattern = Pattern(reduced_pattern)
-        extraction = reduced_pattern.extract(string)
-        return reduced_pattern + extraction == string
+        return reduced_pattern.match(string)
+
+    def __reduce_pattern__(self, string):
+        if self.fnmatch_pattern.startswith('*'):
+            if self.keywords[0].depth is None:
+                raise ValueError
+        splitted_pattern = self.fnmatch_pattern.split('*')
+        pattern_fragments = [splitted_pattern[0]]
+        if len(splitted_pattern) > 1:
+            for split_i in splitted_pattern[1:]:
+                pattern_fragments.append('*')
+                pattern_fragments.append(split_i)
+
+        reduced_patterns = []
+        for i in range(len(pattern_fragments) - 1):
+            reduced_patterns.append(''.join(pattern_fragments[:i+1]))
+        matching = [fnmatch.fnmatch(string, pat) for pat in reduced_patterns]
+        if not any(matching):
+            return None, None
+        else:
+            idx = len(matching) - matching[::-1].index(True) -1
+            reduced_fnmatch = reduced_patterns[idx]
+            reduced_pattern = ''
+            kw_counter = 0
+            for fragment_i in pattern_fragments[:idx+1]:
+                if fragment_i != '*':
+                    addition = fragment_i
+                else:
+                    addition = '<{}>'.format(repr(self.keywords[kw_counter]))
+                    kw_counter += 1
+                reduced_pattern += addition
+        return reduced_pattern, reduced_fnmatch
 
     def extract(self, string, match=True):
         if match:
@@ -175,17 +207,20 @@ class Keyword(str):
                                          '\'name::depth\'')
         else:
             self.name = string
+            self.depth = 1
 
     def match(self, string):
-        matches = True
-        if self.depth is not None:
+        if self.depth == 0:
+            return True
+        else:
+            matches = True
             if string.startswith('/'):
                 string = string[1:]
             if string.endswith('/'):
                 string = string[:-1]
             has_required_depth = string.count('/') +1 == self.depth
             matches = matches and has_required_depth
-        return matches
+            return matches
 
     def __str__(self):
         return self.name
