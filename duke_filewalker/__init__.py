@@ -7,7 +7,6 @@ from .extraction import Pattern, Extraction
 __all__ = ['DukeFilewalker', 'Keyword', 'Pattern', 'Extraction', 'walk']
 
 
-
 class Walker:
     def __init__(self, top, pattern, onerror=None, followlinks=False):
         self.top = top
@@ -21,7 +20,6 @@ class Walker:
         followlinks = self.followlinks
         if top is None:
             top = self.top
-        print(top)
         try:
             names = os.listdir(top)
         except os.error as err:
@@ -33,11 +31,8 @@ class Walker:
         for name in names:
             path = os.path.join(top, name)
             if os.path.isdir(path):
-                print(path)
                 if pattern.match_subpath(path):
                     dirs.append(name)
-                else:
-                    print('Not matching')
             matching, extraction = pattern.match(path, extract=True)
             if matching:
                 extractions.append(extraction)

@@ -95,13 +95,21 @@ class Pattern(str):
     def __radd__(self, other):
         return self + other
 
-    def __fnmatch__(self, string):
-        return fnmatch.fnmatch(string, self.fnmatch_pattern)
+    def __fnmatch__(self, string, pattern=None):
 
-    def match(self, string, extract=False):
+        if pattern is None:
+            pattern = self.fnmatch_pattern
+        matches = fnmatch.fnmatch(string, pattern)
+        if not matches and string.endswith('/'):
+            matches = fnmatch.fnmatch(string, pattern + '/')
+        elif not matches and pattern.endswith('/'):
+            matches = fnmatch.fnmatch(string + '/', pattern)
+        return matches
+
+    def match(self, string, extract=False, sub=False):
         if self.__fnmatch__(string):
             extraction = self.extract(string)
-            checked_extraction = [kw.match(extraction[kw])
+            checked_extraction = [kw.match(extraction[kw], sub=sub)
                                   for kw in self.keywords
                                   if kw in extraction.keys()]
             if extract:
@@ -122,11 +130,10 @@ class Pattern(str):
                              'a depth limit can not bebe used for '
                              'match_subpath, because \'*\' '
                              'matches with everything!')
-        print(reduced_pattern)
         if reduced_pattern is None:
             return False
         reduced_pattern = Pattern(reduced_pattern)
-        return reduced_pattern.match(string)
+        return reduced_pattern.match(string, sub=True)
 
     def __reduce_pattern__(self, string):
         if self.fnmatch_pattern.startswith('*'):
@@ -141,8 +148,8 @@ class Pattern(str):
 
         reduced_patterns = []
         for i in range(len(pattern_fragments) - 1):
-            reduced_patterns.append(''.join(pattern_fragments[:i+1]))
-        matching = [fnmatch.fnmatch(string, pat) for pat in reduced_patterns]
+            reduced_patterns.append(''.join(pattern_fragments[:i + 1]))
+        matching = [self.__fnmatch__(string, pat) for pat in reduced_patterns]
         if not any(matching):
             return None, None
         else:
@@ -150,7 +157,7 @@ class Pattern(str):
             reduced_fnmatch = reduced_patterns[idx]
             reduced_pattern = ''
             kw_counter = 0
-            for fragment_i in pattern_fragments[:idx+1]:
+            for fragment_i in pattern_fragments[:idx + 1]:
                 if fragment_i != '*':
                     addition = fragment_i
                 else:
@@ -220,7 +227,7 @@ class Keyword(str):
             self.name = string
             self.depth = 1
 
-    def match(self, string):
+    def match(self, string, sub=False):
         if self.depth == 0:
             return True
         else:
@@ -229,7 +236,10 @@ class Keyword(str):
                 string = string[1:]
             if string.endswith('/'):
                 string = string[:-1]
-            has_required_depth = string.count('/') + 1 == self.depth
+            if sub:
+                has_required_depth = string.count('/') + 1 <= self.depth
+            else:
+                has_required_depth = string.count('/') + 1 == self.depth
             matches = matches and has_required_depth
             return matches
 
