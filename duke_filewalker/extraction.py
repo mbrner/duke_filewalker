@@ -81,6 +81,8 @@ class Pattern(str):
                 '<{}>'.format(kw), '*')
 
     def __add__(self, other):
+        if isinstance(other, dict) and not isinstance(other, Extraction):
+            other = Extraction(other)
         if isinstance(other, Extraction):
             new_pattern = self
             for kw in self.keywords:
