@@ -183,7 +183,7 @@ class Pattern(str):
             return s
 
     def extract(self, string, reduce=False):
-        string = self.string(self.__adjust_slash_at_end__(string))
+        string = self.__adjust_slash_at_end__(string)
         if reduce:
             pattern, _ = self.__reduce_pattern__(string)
         else:
