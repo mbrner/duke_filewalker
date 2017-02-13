@@ -151,7 +151,7 @@ class Pattern(str):
                     while split_i != '':
                         pre, slash, split_i = split_i.partition('/')
                         ss.append(pre + slash)
-                    pattern_fragments.extend(split_i)
+                    pattern_fragments.extend(ss)
                 else:
                     pattern_fragments.append(split_i)
 
