@@ -27,8 +27,6 @@ def generate_fnmatch_pattern(pattern):
 
 
 def extract(string, pattern):
-    print(string)
-    print(pattern)
     pattern, keywords = generate_fnmatch_pattern(pattern)
     splitted_pattern = pattern.split('*')
     extraction = {}
@@ -144,7 +142,7 @@ class Pattern(str):
                              'matches with everything!')
         if reduced_pattern is None:
             return False
-        print(reduced_pattern, '###')
+        reduced_pattern = adjust_slash_at_end(reduced_pattern, string)
         reduced_pattern = Pattern(reduced_pattern)
         return reduced_pattern.match(string, sub=True)
 
@@ -186,10 +184,7 @@ class Pattern(str):
                 reduced_pattern += addition
         return reduced_pattern, reduced_fnmatch
 
-
-
     def extract(self, string, reduce=False):
-
         if reduce:
             pattern, _ = self.__reduce_pattern__(string)
         else:

@@ -17,7 +17,7 @@ def touch(file_path):
 @contextlib.contextmanager
 def dummy_files(top, file_list):
     if os.path.exists(top):
-        raise ValueError('\'top\' already exists!')
+        raise ValueError('\'top\' ({}) already exists!'.format(top))
     full_pathes = []
     top = os.path.abspath(top)
     for file_i in file_list:
@@ -101,6 +101,14 @@ def test_walk():
             for ext_i in ext:
                 found_wrong.append(pat + ext_i)
         assert len(found_wrong) == 3
+
+        pattern_correct = 'a/<folders::1>/<folders_2::1>/f_correct.txt'
+        walker_correct = duke_filewalker.Walker(top, pattern_correct)
+        found_correct = []
+        for pat, ext in walker_correct.walk():
+            for ext_i in ext:
+                found_correct.append(pat + ext_i)
+        assert len(found_correct) == 3
 
 
 if __name__ == '__main__':
