@@ -5,6 +5,15 @@ import difflib
 import fnmatch
 
 
+def adjust_slash_at_end(string, pattern):
+    if pattern.endswith('/') and not string.endswith('/'):
+        return string + '/'
+    elif string.endswith('/') and not pattern.endswith('/'):
+        return string[:-1]
+    else:
+        return string
+
+
 def get_keywords(pattern):
     string_list = re.findall(r'\<(.*?)\>', pattern)
     return [Keyword(string) for string in string_list]
@@ -174,20 +183,15 @@ class Pattern(str):
                 reduced_pattern += addition
         return reduced_pattern, reduced_fnmatch
 
-    def __adjust_slash_at_end__(self, s):
-        if self.endswith('/') and not s.endswith('/'):
-            return s + '/'
-        elif s.endswith('/') and not self.endswith('/'):
-            return s[:-1]
-        else:
-            return s
+
 
     def extract(self, string, reduce=False):
-        string = self.__adjust_slash_at_end__(string)
+
         if reduce:
             pattern, _ = self.__reduce_pattern__(string)
         else:
             pattern = self.pattern
+        string = adjust_slash_at_end(string, pattern)
         file_dict = extract(string, pattern)
         return Extraction(file_dict)
 
