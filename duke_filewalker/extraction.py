@@ -146,7 +146,14 @@ class Pattern(str):
         if len(splitted_pattern) > 1:
             for split_i in splitted_pattern[1:]:
                 pattern_fragments.append('*')
-                pattern_fragments.append(split_i)
+                if '/' in split_i:
+                    ss = []
+                    while split_i != '':
+                        pre, slash, split_i = split_i.partition('/')
+                        ss.append(pre + slash)
+                    pattern_fragments.extend(split_i)
+                else:
+                    pattern_fragments.append(split_i)
 
         reduced_patterns = []
         for i in range(len(pattern_fragments) - 1):
