@@ -1,10 +1,8 @@
 import os
 
-from .duke_filewalker import DukeFilewalker
-from .keyword import Keyword
 from .extraction import Pattern, Extraction
 
-__all__ = ['DukeFilewalker', 'Keyword', 'Pattern', 'Extraction', 'walk']
+__all__ = ['Pattern', 'Extraction', 'Walker']
 
 
 class Walker:
