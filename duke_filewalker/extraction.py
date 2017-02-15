@@ -137,7 +137,7 @@ class Pattern(str):
             else:
                 return False
 
-    def match_subpath(self, string):
+    def match_subpath(self, string, extract=False):
         try:
             reduced_pattern, reduced_fnmatch = self.__reduce_pattern__(string)
         except ValueError:
@@ -149,7 +149,13 @@ class Pattern(str):
             return False
         reduced_pattern = adjust_slash_at_end(reduced_pattern, string)
         reduced_pattern = Pattern(reduced_pattern)
-        return reduced_pattern.match(string, sub=True)
+        if extract:
+            matching, extraction = reduced_pattern.match(string,
+                                                         extract=True,
+                                                         sub=True)
+            return matching, reduced_pattern, extraction
+        else:
+            return reduced_pattern.match(string, sub=True)
 
     def __reduce_pattern__(self, string):
         if self.fnmatch_pattern.startswith('*'):

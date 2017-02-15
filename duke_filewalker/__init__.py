@@ -29,18 +29,25 @@ class Walker:
                 onerror(err)
             return
 
-        dirs, extractions = [], []
+        ext = []
+        reduced_pat = []
+        reduced_ext = []
         for name in names:
             path = os.path.join(top, name)
-            if os.path.isdir(path):
-                if pattern.match_subpath(path):
-                    dirs.append(path)
             matching, extraction = pattern.match(path, extract=True)
             if matching:
-                extractions.append(extraction)
+                ext.append(extraction)
+            else:
+                matching, reduced_pattern, extraction = pattern.match_subpath(
+                    path,
+                    extract=True)
+                if matching:
+                    reduced_pat.append(reduced_pattern)
+                    reduced_ext.append(extraction)
 
-        yield pattern, dirs, extractions
-        for new_path in dirs:
+        yield pattern, ext, reduced_pat, reduced_ext
+        for new_path in [pat_i + ext_i for pat_i , ext_i in zip(reduced_pat,
+                reduced_ext)]:
             if followlinks or not os.path.islink(new_path):
                 for x in self.walk(new_path):
                     yield x
