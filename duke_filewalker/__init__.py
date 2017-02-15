@@ -37,25 +37,18 @@ class Walker:
             matching, extraction = pattern.match(path, extract=True)
             if matching:
                 ext.append(extraction)
-            else:
-                if reduced_pat is None:
-                    reduced_pat, _ = pattern.reduce_pattern(path)
-                else:
-                    new_pat =  pattern.reduce_pattern(path)[0]
-                    try:
-                        assert reduced_pat == new_pat
-                    except AssertionError:
-                        print(reduced_pat, new_pat, path)
-                        exit()
-                if reduced_pat is not None:
-                    matching, extraction = reduced_pat.match(path,
-                                                             extract=True,
-                                                             sub=True)
+            elif os.path.isdir(path):
+                new_pat = pattern.reduce_pattern(path)[0]
+                if new_pat is not None:
+                    matching, extraction = new_pat.match(path,
+                                                         extract=True,
+                                                         sub=True)
                     if matching:
                         reduced_ext.append(extraction)
-                    else:
-                        reduced_pat = None
-
+                        if reduced_pat is None:
+                            reduced_pat = new_pat
+                        else:
+                            assert new_pat == reduced_pat
         yield pattern, ext, reduced_pat, reduced_ext
         if reduced_pat is None:
             new_pathes = []
