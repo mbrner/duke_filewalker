@@ -41,7 +41,12 @@ class Walker:
                 if reduced_pat is None:
                     reduced_pat, _ = pattern.reduce_pattern(path)
                 else:
-                    assert reduced_pat == pattern.reduce_pattern(path)[0]
+                    new_pat =  pattern.reduce_pattern(path)[0]
+                    try:
+                        assert reduced_pat == new_pat
+                    except AssertionError:
+                        print(reduced_pat, new_pat, path)
+                        exit()
                 if reduced_pat is not None:
                     matching, extraction = reduced_pat.match(path,
                                                              extract=True,
