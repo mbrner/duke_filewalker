@@ -5,6 +5,15 @@ import difflib
 import fnmatch
 
 
+def adjust_slash_at_end(string, pattern):
+    if pattern.endswith('/') and not string.endswith('/'):
+        return string + '/'
+    elif string.endswith('/') and not pattern.endswith('/'):
+        return string[:-1]
+    else:
+        return string
+
+
 def get_keywords(pattern):
     string_list = re.findall(r'\<(.*?)\>', pattern)
     return [Keyword(string) for string in string_list]
@@ -81,7 +90,9 @@ class Pattern(str):
                 '<{}>'.format(kw), '*')
 
     def __add__(self, other):
-        if isinstance(other, dict):
+        if isinstance(other, dict) and not isinstance(other, Extraction):
+            other = Extraction(other)
+        if isinstance(other, Extraction):
             new_pattern = self
             for kw in self.keywords:
                 if kw in other.keys():
@@ -101,7 +112,6 @@ class Pattern(str):
         return self + other
 
     def __fnmatch__(self, string, pattern=None):
-
         if pattern is None:
             pattern = self.fnmatch_pattern
         matches = fnmatch.fnmatch(string, pattern)
@@ -137,6 +147,7 @@ class Pattern(str):
                              'matches with everything!')
         if reduced_pattern is None:
             return False
+        reduced_pattern = adjust_slash_at_end(reduced_pattern, string)
         reduced_pattern = Pattern(reduced_pattern)
         return reduced_pattern.match(string, sub=True)
 
@@ -149,7 +160,14 @@ class Pattern(str):
         if len(splitted_pattern) > 1:
             for split_i in splitted_pattern[1:]:
                 pattern_fragments.append('*')
-                pattern_fragments.append(split_i)
+                if '/' in split_i:
+                    ss = []
+                    while split_i != '':
+                        pre, slash, split_i = split_i.partition('/')
+                        ss.append(pre + slash)
+                    pattern_fragments.extend(ss)
+                else:
+                    pattern_fragments.append(split_i)
 
         reduced_patterns = []
         for i in range(len(pattern_fragments) - 1):
@@ -176,11 +194,8 @@ class Pattern(str):
             pattern, _ = self.__reduce_pattern__(string)
         else:
             pattern = self.pattern
+        string = adjust_slash_at_end(string, pattern)
         file_dict = extract(string, pattern)
-        return Extraction(file_dict)
-
-    def match_extract(self, string):
-        file_dict = extract(string)
         return Extraction(file_dict)
 
     def replace(self, *args):
