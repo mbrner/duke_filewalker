@@ -6,12 +6,15 @@ __all__ = ['Pattern', 'Extraction', 'Walker']
 
 
 class Walker:
-    def __init__(self, top, pattern, onerror=None, followlinks=False):
-        self.top = top
+    def __init__(self, pattern, onerror=None, followlinks=False):
         if not pattern.startswith('/'):
+            top = os.getcwd()
             self.pattern = Pattern(os.path.join(top, pattern))
         else:
             self.pattern = Pattern(pattern)
+        self.top = os.path.dirname(self.pattern.split('<')[0])
+        print(self.top)
+        print(self.pattern)
         self.onerror = onerror
         self.followlinks = followlinks
 

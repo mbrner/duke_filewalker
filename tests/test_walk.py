@@ -46,64 +46,72 @@ def test_walk():
     top = os.path.join(top, 'tests/test_structure')
 
     with dummy_files(top, test_structure):
-        pattern = '<folders::0>/f_<file_name>.txt'
-        walker = duke_filewalker.Walker(top, pattern)
+        pattern = os.path.join(top,
+                               '<folders::0>/f_<file_name>.txt')
+        walker = duke_filewalker.Walker(pattern)
         found = []
         for pat, dirs, ext in walker.walk():
             for ext_i in ext:
                 found.append(pat + ext_i)
         assert len(found) == 10
 
-        pattern_correct = 'a/<folders::0>/f_correct.txt'
-        walker_correct = duke_filewalker.Walker(top, pattern_correct)
+        pattern_correct = os.path.join(top,
+            'a/<folders::0>/f_correct.txt')
+        walker_correct = duke_filewalker.Walker(pattern_correct)
         found_correct = []
         for pat, dirs, ext in walker_correct.walk():
             for ext_i in ext:
                 found_correct.append(pat + ext_i)
         assert len(found_correct) == 5
 
-        pattern_wrong = 'a/<folders::0>/f_wrong.txt'
-        walker_wrong = duke_filewalker.Walker(top, pattern_wrong)
+        pattern_wrong = os.path.join(top,
+            'a/<folders::0>/f_wrong.txt')
+        walker_wrong = duke_filewalker.Walker(pattern_wrong)
         found_wrong = []
         for pat, dirs, ext in walker_wrong.walk():
             for ext_i in ext:
                 found_wrong.append(pat + ext_i)
         assert len(found_wrong) == 5
 
-        pattern_correct = 'a/<folders::1>/f_correct.txt'
-        walker_correct = duke_filewalker.Walker(top, pattern_correct)
+        pattern_correct = os.path.join(top,
+            'a/<folders::1>/f_correct.txt')
+        walker_correct = duke_filewalker.Walker(pattern_correct)
         found_correct = []
         for pat, dirs, ext in walker_correct.walk():
             for ext_i in ext:
                 found_correct.append(pat + ext_i)
         assert len(found_correct) == 1
 
-        pattern_wrong = 'a/<folders::1>/f_wrong.txt'
-        walker_wrong = duke_filewalker.Walker(top, pattern_wrong)
+        pattern_wrong = os.path.join(top,
+            'a/<folders::1>/f_wrong.txt')
+        walker_wrong = duke_filewalker.Walker(pattern_wrong)
         found_wrong = []
         for pat, dirs, ext in walker_wrong.walk():
             for ext_i in ext:
                 found_wrong.append(pat + ext_i)
         assert len(found_wrong) == 1
 
-        pattern_correct = 'a/<folders::2>/f_correct.txt'
-        walker_correct = duke_filewalker.Walker(top, pattern_correct)
+        pattern_correct = os.path.join(top,
+            'a/<folders::2>/f_correct.txt')
+        walker_correct = duke_filewalker.Walker(pattern_correct)
         found_correct = []
         for pat, dirs, ext in walker_correct.walk():
             for ext_i in ext:
                 found_correct.append(pat + ext_i)
         assert len(found_correct) == 3
 
-        pattern_wrong = 'a/<folders::2>/f_wrong.txt'
-        walker_wrong = duke_filewalker.Walker(top, pattern_wrong)
+        pattern_wrong = os.path.join(top,
+            'a/<folders::2>/f_wrong.txt')
+        walker_wrong = duke_filewalker.Walker(pattern_wrong)
         found_wrong = []
         for pat, dirs, ext in walker_wrong.walk():
             for ext_i in ext:
                 found_wrong.append(pat + ext_i)
         assert len(found_wrong) == 3
 
-        pattern_correct = 'a/<folders::1>/<folders_2::1>/f_correct.txt'
-        walker_correct = duke_filewalker.Walker(top, pattern_correct)
+        pattern_correct = os.path.join(top,
+            'a/<folders::1>/<folders_2::1>/f_correct.txt')
+        walker_correct = duke_filewalker.Walker(pattern_correct)
         found_correct = []
         for pat, dirs, ext in walker_correct.walk():
             for ext_i in ext:
