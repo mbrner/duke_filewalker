@@ -34,14 +34,13 @@ class Walker:
             path = os.path.join(top, name)
             if os.path.isdir(path):
                 if pattern.match_subpath(path):
-                    dirs.append(name)
+                    dirs.append(path)
             matching, extraction = pattern.match(path, extract=True)
             if matching:
                 extractions.append(extraction)
 
         yield pattern, dirs, extractions
-        for name in dirs:
-            new_path = os.path.join(top, name)
+        for new_path in dirs:
             if followlinks or not os.path.islink(new_path):
                 for x in self.walk(new_path):
                     yield x
