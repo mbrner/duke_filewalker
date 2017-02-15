@@ -48,6 +48,8 @@ class Walker:
                                                              sub=True)
                     if matching:
                         reduced_ext.append(extraction)
+                    else:
+                        reduced_pat = None
 
         yield pattern, ext, reduced_pat, reduced_ext
         if reduced_pat is None:
