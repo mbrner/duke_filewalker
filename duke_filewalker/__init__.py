@@ -13,8 +13,6 @@ class Walker:
         else:
             self.pattern = Pattern(pattern)
         self.top = os.path.dirname(self.pattern.split('<')[0])
-        print(self.top)
-        print(self.pattern)
         self.onerror = onerror
         self.followlinks = followlinks
 
