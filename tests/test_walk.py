@@ -118,6 +118,22 @@ def test_walk():
                 found_correct.append(pat + ext_i)
         assert len(found_correct) == 3
 
+        pattern = os.path.join(top,
+                               '<folders::0>/f_<file_name>.txt')
+        walker = duke_filewalker.Walker(pattern)
+        found = []
+        for pat, ext, reduced_pat, reduced_ext in walker.walk():
+            for ext_i in ext:
+                found.append(pat + ext_i)
+            filtered_ext = []
+            for ext_i in reduced_ext:
+                if 'folders' not in ext_i.keys():
+                    filtered_ext.append(ext_i)
+                elif ext_i['folders'] != 'a/c/a':
+                    filtered_ext.append(ext_i)
+            reduced_ext[:] = filtered_ext
+        assert len(found) == 6
+
 
 if __name__ == '__main__':
     test_walk()

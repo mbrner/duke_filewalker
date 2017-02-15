@@ -139,7 +139,7 @@ class Pattern(str):
 
     def match_subpath(self, string, extract=False):
         try:
-            reduced_pattern, reduced_fnmatch = self.__reduce_pattern__(string)
+            reduced_pattern, reduced_fnmatch = self.reduce_pattern(string)
         except ValueError:
             raise ValueError('A pattern starting with a keyword without '
                              'a depth limit can not bebe used for '
@@ -147,7 +147,6 @@ class Pattern(str):
                              'matches with everything!')
         if reduced_pattern is None:
             return False
-        reduced_pattern = adjust_slash_at_end(reduced_pattern, string)
         reduced_pattern = Pattern(reduced_pattern)
         if extract:
             matching, extraction = reduced_pattern.match(string,
@@ -157,7 +156,7 @@ class Pattern(str):
         else:
             return reduced_pattern.match(string, sub=True)
 
-    def __reduce_pattern__(self, string):
+    def reduce_pattern(self, string):
         if self.fnmatch_pattern.startswith('*'):
             if self.keywords[0].depth is None:
                 raise ValueError
@@ -193,11 +192,13 @@ class Pattern(str):
                     addition = '<{}>'.format(repr(self.keywords[kw_counter]))
                     kw_counter += 1
                 reduced_pattern += addition
-        return reduced_pattern, reduced_fnmatch
+        reduced_pattern = adjust_slash_at_end(reduced_pattern, string)
+        reduced_fnmatch = adjust_slash_at_end(reduced_fnmatch, string)
+        return Pattern(reduced_pattern), reduced_fnmatch
 
     def extract(self, string, reduce=False):
         if reduce:
-            pattern, _ = self.__reduce_pattern__(string)
+            pattern, _ = self.reduce_pattern(string)
         else:
             pattern = self.pattern
         string = adjust_slash_at_end(string, pattern)

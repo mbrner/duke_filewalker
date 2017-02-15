@@ -30,7 +30,7 @@ class Walker:
             return
 
         ext = []
-        reduced_pat = []
+        reduced_pat = None
         reduced_ext = []
         for name in names:
             path = os.path.join(top, name)
@@ -38,16 +38,24 @@ class Walker:
             if matching:
                 ext.append(extraction)
             else:
-                matching, reduced_pattern, extraction = pattern.match_subpath(
-                    path,
-                    extract=True)
-                if matching:
-                    reduced_pat.append(reduced_pattern)
-                    reduced_ext.append(extraction)
+                if reduced_pat is None:
+                    reduced_pat, _ = pattern.reduce_pattern(path)
+                else:
+                    assert reduced_pat == pattern.reduce_pattern(path)[0]
+                if reduced_pat is not None:
+                    matching, extraction = reduced_pat.match(path,
+                                                             extract=True,
+                                                             sub=True)
+                    if matching:
+                        reduced_ext.append(extraction)
 
         yield pattern, ext, reduced_pat, reduced_ext
-        for new_path in [pat_i + ext_i for pat_i , ext_i in zip(reduced_pat,
-                reduced_ext)]:
+        if reduced_pat is None:
+            new_pathes = []
+        else:
+            new_pathes = [reduced_pat + ext_i for ext_i in reduced_ext]
+
+        for new_path in new_pathes:
             if followlinks or not os.path.islink(new_path):
                 for x in self.walk(new_path):
                     yield x
