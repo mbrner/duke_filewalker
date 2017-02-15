@@ -81,13 +81,18 @@ class Pattern(str):
                 '<{}>'.format(kw), '*')
 
     def __add__(self, other):
-        if isinstance(other, Extraction):
+        if isinstance(other, dict):
             new_pattern = self
             for kw in self.keywords:
                 if kw in other.keys():
                     replacement = other[kw]
-                    new_pattern = new_pattern.replace(
-                        '<{}>'.format(repr(kw)), replacement)
+                    try:
+                        replacement = str(replacement)
+                    except:
+                        pass
+                    else:
+                        new_pattern = new_pattern.replace(
+                            '<{}>'.format(repr(kw)), replacement)
             return Pattern(new_pattern)
         else:
             return super(Pattern, self).__add__(other)
@@ -177,6 +182,29 @@ class Pattern(str):
     def match_extract(self, string):
         file_dict = extract(string)
         return Extraction(file_dict)
+
+    def replace(self, *args):
+        if len(args) == 2:
+            return super(Pattern, self).replace(args[0], args[1])
+        elif len(args) == 1:
+            extraction = args[0]
+            if isinstance(extraction, Extraction):
+                new_pattern = self
+                for kw in self.keywords:
+                    if kw in extraction.keys():
+                        replacement = extraction[kw]
+                        try:
+                            replacement = str(replacement)
+                        except:
+                            pass
+                        else:
+                            new_pattern = new_pattern.replace(
+                                '<{}>'.format(repr(kw)), replacement)
+                return Pattern(new_pattern)
+            else:
+                raise TypeError('\'extraction\' must be of type Extraction.')
+        else:
+            raise AttributeError('Either (str, str) or (Extraction)')
 
 
 class Extraction(dict):

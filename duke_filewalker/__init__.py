@@ -8,7 +8,10 @@ __all__ = ['Pattern', 'Extraction', 'Walker']
 class Walker:
     def __init__(self, top, pattern, onerror=None, followlinks=False):
         self.top = top
-        self.pattern = Pattern(os.path.join(top, pattern))
+        if not pattern.startswith('/'):
+            self.pattern = Pattern(os.path.join(top, pattern))
+        else:
+            self.pattern = Pattern(pattern)
         self.onerror = onerror
         self.followlinks = followlinks
 
@@ -35,7 +38,7 @@ class Walker:
             if matching:
                 extractions.append(extraction)
 
-        yield pattern, extractions
+        yield pattern, dirs, extractions
         for name in dirs:
             new_path = os.path.join(top, name)
             if followlinks or not os.path.islink(new_path):
