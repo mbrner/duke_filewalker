@@ -6,41 +6,32 @@ __all__ = ['Pattern', 'Extraction', 'Walker']
 
 
 class Walker:
-    def __init__(self, pattern, onerror=None, followlinks=False):
+    def __init__(self, pattern, followlinks=False):
         if not pattern.startswith('/'):
             top = os.getcwd()
             self.pattern = Pattern(os.path.join(top, pattern))
         else:
             self.pattern = Pattern(pattern)
         self.top = os.path.dirname(self.pattern.split('<')[0])
-        self.onerror = onerror
         self.followlinks = followlinks
 
     def walk(self, top=None):
         pattern = self.pattern
-        onerror = self.onerror
         followlinks = self.followlinks
         if top is None:
             top = self.top
-        try:
-            names = os.listdir(top)
-        except os.error as err:
-            if onerror is not None:
-                onerror(err)
-            return
 
         ext = []
         reduced_pat = None
         reduced_ext = []
-        for name in names:
-            path = os.path.join(top, name)
-            matching, extraction = pattern.match(path, extract=True)
+        for dir_entry in os.scandir(top):
+            matching, extraction = pattern.match(dir_entry.path, extract=True)
             if matching:
                 ext.append(extraction)
-            elif os.path.isdir(path):
-                new_pat = pattern.reduce_pattern(path)[0]
+            elif dir_entry.is_dir():
+                new_pat = pattern.reduce_pattern(dir_entry.path)[0]
                 if new_pat is not None:
-                    matching, extraction = new_pat.match(path,
+                    matching, extraction = new_pat.match(dir_entry.path,
                                                          extract=True,
                                                          sub=True)
                     if matching:
