@@ -62,6 +62,9 @@ class Walker:
     def __walk_legacy__(self, top=None):
         pattern = self.pattern
         followlinks = self.followlinks
+        if top is None:
+            top = self.top
+
         ext = []
         reduced_pat = None
         reduced_ext = []
