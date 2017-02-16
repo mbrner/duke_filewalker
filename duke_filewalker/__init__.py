@@ -15,13 +15,10 @@ class Walker:
             self.pattern = Pattern(pattern)
         self.top = os.path.dirname(self.pattern.split('<')[0])
         self.followlinks = followlinks
-        if sys.version_info >= (3,5):
+        if sys.version_info >= (3, 5):
             self.walk = self.__walk_3_5__
         else:
             self.walk = self.__walk_legacy__
-
-
-
 
     def __walk_3_5__(self, top=None):
         pattern = self.pattern
