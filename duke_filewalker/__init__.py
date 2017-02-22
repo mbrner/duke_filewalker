@@ -65,7 +65,9 @@ class Walker:
         ext = []
         reduced_pat = None
         reduced_ext = []
-        for name in os.listdir(top):
+        names = os.listdir(top)
+        sorted(names)
+        for name in names:
             path = os.path.join(top, name)
             matching, extraction = pattern.match(path, extract=True)
             if matching:
