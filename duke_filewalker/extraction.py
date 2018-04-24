@@ -97,13 +97,9 @@ class Pattern(str):
             for kw in self.keywords:
                 if kw in other.keys():
                     replacement = other[kw]
-                    try:
-                        replacement = str(replacement)
-                    except:
-                        pass
-                    else:
-                        new_pattern = new_pattern.replace(
-                            '<{}>'.format(repr(kw)), replacement)
+                    replacement = str(replacement)
+                    new_pattern = new_pattern.replace(
+                        '<{}>'.format(repr(kw)), replacement)
             return Pattern(new_pattern)
         else:
             return super(Pattern, self).__add__(other)
@@ -215,13 +211,9 @@ class Pattern(str):
                 for kw in self.keywords:
                     if kw in extraction.keys():
                         replacement = extraction[kw]
-                        try:
-                            replacement = str(replacement)
-                        except:
-                            pass
-                        else:
-                            new_pattern = new_pattern.replace(
-                                '<{}>'.format(repr(kw)), replacement)
+                        replacement = str(replacement)
+                        new_pattern = new_pattern.replace(
+                            '<{}>'.format(repr(kw)), replacement)
                 return Pattern(new_pattern)
             else:
                 raise TypeError('\'extraction\' must be of type Extraction.')
